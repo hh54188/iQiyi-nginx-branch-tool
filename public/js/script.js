@@ -1,7 +1,7 @@
 $(function () {
 	var list = $("#branch-contianer-list");
 
-	function render(names) {
+	function renderBranch(names) {
 
 		var _renderTpl = function (name) {
 			return '<li><button data-name="' + name + '" class="btn margin-bottom-10">' + name + '</button></li>';
@@ -17,7 +17,7 @@ $(function () {
 		
 		$.get("/getdirs", function (data, textStatus) {
 			if (data.status != "ok") alert("Get Branch Information faild");
-			render(data.names);
+			renderBranch(data.names);
 		}, "json")
 	})()
 

@@ -35,7 +35,13 @@ fs.readFile(cfg.NGINX_CFG_URL, {
 		return;
 	}
 
-	var result = data.match(/#qiyiV2/);
+	var regForV2 = /#qiyiV2\r\n\s*root\s*E:\/\/Work\/qiyi\/(\w+);\r\n\s*/;
+	// var regForLib = /#lib\r\n\s*root\s*E:\/\/Work\/qiyi\/;/;
+
+	var result = data.match(regForV2);
+	// var result = data.search(regForV2);
+	// var result = regForV2.exec(data);
+	// var result = regForLib.exec(data);
 	console.log(result);
 })	
 
