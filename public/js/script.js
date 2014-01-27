@@ -1,5 +1,20 @@
+
 $(function () {
 	var list = $("#branch-contianer-list");
+
+	function createBranch(name) {
+		$.get("/createBranch?name=" + name, function (data, textStatus) {
+			if (!data) {
+				alert("Create Branch Failed!");
+				return;
+			}
+
+			if (data.status == "exist") {
+				alert("Branch Already Exist!");
+				return;				
+			}
+		})
+	}	
 
 	function renderBranch(names) {
 

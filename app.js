@@ -28,6 +28,45 @@ var cfg = (function () {
 })();	
 
 
+// 创建分支
+app.get("/createBranch", function (req, res) {
+	var branchName = req.query.name;
+	fs.exists(cfg.WORK_DIR + branchName + "/", function (exist) {
+		// 如果文件夹已经存在
+		console.log("EXIST:", exist);
+
+		if (exist) {
+			res.send({
+				status: "exist"
+			});
+			return;
+		}
+
+		// 创建分支目录
+		fs.mkdir(cfg.WORK_DIR + branchName, function (err, data) {
+			if (err) {
+				console.log(err);
+				return;
+			}
+			fs.mkdir(cfg.WORK_DIR + branchName + "/js", function (err, data) {
+				if (err) {
+					console.log(err);
+					return;
+				}				
+				fs.mkdir(cfg.WORK_DIR + branchName + "/js/qiyiV2", function (err, data) {
+					if (err) {
+						console.log(err);
+						return;
+					}
+					res.send({
+						status: "ok"
+					});
+				})
+			})
+		})
+	})
+})
+
 // 获取当前分支：
 app.get("/getCurBranch", function (req, res) {
 	fs.readFile(cfg.NGINX_CFG_URL, {
@@ -39,9 +78,7 @@ app.get("/getCurBranch", function (req, res) {
 		}
 
 		var result = data.match(cfg.REG_V2);
-
 		console.log("Current Branch------>", result? result[2]: result);
-
 		res.send({
 			"status": "ok",
 			name: result? result[2]: result
@@ -78,6 +115,8 @@ app.get("/getdirs", function (req, res) {
 	});
 });
 
+
+// 切换分支
 app.get("/switch", function (req, res) {
 
 	var branchName = req.query.name;
