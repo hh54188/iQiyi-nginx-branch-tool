@@ -11,6 +11,7 @@ var CFG = {
 	WIN: {
 		WORK_DIR: "E://Work/qiyi/",
 		NGINX_CFG_URL: "C://nginx-1.5.8/conf/nginx.conf",
+		REG_V2: /(#qiyiV2\s*\r\n\s*root\s*E:\/\/Work\/qiyi\/)([\u4e00-\u9fa5a-zA-Z0-9]+)(;\r\n\s)*/,
 		RELOAD_CMD: "nginx -s reload"
 	},
 	LIN: {
@@ -24,27 +25,29 @@ var cfg = (function () {
 	} else {
 		return CFG.LIN;
 	}
-})();
+})();	
 
 
-fs.readFile(cfg.NGINX_CFG_URL, {
-	encoding: "utf-8"
-}, function (err, data) {
-	if (err) {
-		console.log(err);
-		return;
-	}
+// 获取当前分支：
+app.get("/getCurBranch", function (req, res) {
+	fs.readFile(cfg.NGINX_CFG_URL, {
+		encoding: "utf-8"
+	}, function (err, data) {
+		if (err) {
+			console.log(err);
+			return;
+		}
 
-	var regForV2 = /#qiyiV2\r\n\s*root\s*E:\/\/Work\/qiyi\/(\w+);\r\n\s*/;
-	// var regForLib = /#lib\r\n\s*root\s*E:\/\/Work\/qiyi\/;/;
+		var result = data.match(cfg.REG_V2);
 
-	var result = data.match(regForV2);
-	// var result = data.search(regForV2);
-	// var result = regForV2.exec(data);
-	// var result = regForLib.exec(data);
-	console.log(result);
-})	
+		console.log("Current Branch------>", result? result[2]: result);
 
+		res.send({
+			"status": "ok",
+			name: result? result[2]: result
+		})
+	});
+})
 
 
 
@@ -66,6 +69,8 @@ app.get("/getdirs", function (req, res) {
 			}
 		});
 
+		console.log("All Branch------>", dirNames);
+
 		res.send({
 			status: "ok",
 			names: dirNames
@@ -77,7 +82,9 @@ app.get("/switch", function (req, res) {
 
 	var branchName = req.query.name;
 
-	// 切换分支，覆盖conf文件夹
+	console.log("Switch To------>", branchName);
+
+	// 读取分支文件
 	fs.readFile(cfg.NGINX_CFG_URL, {
 		encoding: "utf-8"
 	}, function (err, data) {
@@ -86,23 +93,27 @@ app.get("/switch", function (req, res) {
 			return;
 		}
 
-		data = data.replace("master", "hello");
+		var newData = data.replace(cfg.REG_V2, "$1" + branchName + "$3");
 
-		fs.writeFile(cfg.NGINX_CFG_URL, data, function (err) {
+		// 写回文件
+		fs.writeFile(cfg.NGINX_CFG_URL, newData, function (err) {
 			if (err) {
 				console.log(err);
 				return;
 			}
-		});
-
-		// 执行nginx reload命令
-		child = exec('nginx -s reload',
-	  		function (error, stdout, stderr) {
-	    		console.log('stdout: ' + stdout);
-	    		console.log('stderr: ' + stderr);
-	    		if (error !== null) {
-	      		console.log('exec error: ' + error);
-	    	}
+			console.log("Switch Branch Success");
+			// 执行nginx reload命令
+			child = exec(cfg.RELOAD_CMD,
+		  		function (error, stdout, stderr) {
+		    		if (error) {
+			      		console.log('exec error: ' + error);
+			    	}
+			    	console.log("Nginx Reload Success");
+			    	res.send({
+			    		status: "ok"
+			    	})
+				}
+			);
 		});
 	})	
 })

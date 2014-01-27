@@ -16,9 +16,17 @@ $(function () {
 	(function Bootstrap () {
 		
 		$.get("/getdirs", function (data, textStatus) {
+
 			if (data.status != "ok") alert("Get Branch Information faild");
 			renderBranch(data.names);
+
+			$.get("/getCurBranch", function (data, textStatus) {
+				if (data.status != "ok") alert("Get Current Branch Information faild");
+				list.find("[data-name=" + data.name +"]").addClass("btn-primary");
+			}, "json");
+
 		}, "json")
+
 	})()
 
 	function switchBranchByName (name) {
@@ -27,6 +35,11 @@ $(function () {
 			var btns = list.find(".btn");
 			btns.removeClass("btn-primary");
 
+			if (!data.status || data.status != "ok")  {
+				alert("Switch Branch Error!");
+				return;
+			}
+			
 			list.find("[data-name=" + name +"]").addClass("btn-primary");
 		});
 	}
