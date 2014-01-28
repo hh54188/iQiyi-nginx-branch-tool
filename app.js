@@ -14,8 +14,25 @@ var CFG = {
 		REG_V2: /(#qiyiV2\s*\r\n\s*root\s*E:\/\/Work\/qiyi\/)([\u4e00-\u9fa5a-zA-Z0-9]+)(;\r\n\s)*/,
 		RELOAD_CMD: "nginx -s reload"
 	},
-	LIN: {
+        // location /js/qiyiV2/ {
+        //     #qiyiV2
+        //     root   /home/liguangyi/Work/master;
+        // }
 
+        // location /js/lib/ {
+        //     #lib
+        //     root   /home/liguangyi/Work;
+        // }
+
+        // location /js/pingback/ {
+        //     #pingback
+        //     root   /home/liguangyi/Work;
+        // }	
+	LIN: {
+		WORK_DIR: "E://Work/qiyi/",
+		NGINX_CFG_URL: "/etc/nginx/nginx.conf",
+		REG_V2: /(#qiyiV2\s*\r\n\s*root\s*E:\/\/Work\/qiyi\/)([\u4e00-\u9fa5a-zA-Z0-9]+)(;\r\n\s)*/,
+		RELOAD_CMD: "nginx -s reload"
 	}
 }
 
