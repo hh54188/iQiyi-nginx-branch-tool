@@ -2,8 +2,8 @@
 $(function () {
 	var list = $("#branch-contianer-list");
 
-	function createBranch(name) {
-		$.get("/createBranch?name=" + name, function (data, textStatus) {
+	function createBranch(name, svn) {
+		$.get("/createBranch?name=" + name + "&svn=" + svn, function (data, textStatus) {
 			if (!data) {
 				alert("Create Branch Failed!");
 				return;
@@ -67,4 +67,16 @@ $(function () {
 		var name = btn.attr("data-name");
 		switchBranchByName(name);
 	});
+
+	$("#branch-btn").click(function () {
+		var name = $("#branch-name").val();
+		var svn = $("#branch-svn").val();
+
+		if (!name || !svn) {
+			alert("error");
+			return;
+		}
+
+		createBranch(name, svn);
+	})
 })
