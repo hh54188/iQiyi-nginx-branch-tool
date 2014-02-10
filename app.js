@@ -3,6 +3,7 @@ var path = require("path");
 var fs = require('fs');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
+var path = require("path");
  
 var app = express();
 app.use(express.static(path.join(__dirname, "public")));
@@ -12,8 +13,8 @@ var user = "liguangyi";
 // 配置文件
 var CFG = {
 	WIN: {
-		WORK_DIR: "E://Work/qiyi/",
-		NGINX_CFG_URL: "C://nginx-1.5.8/conf/nginx.conf",
+		WORK_DIR: "E:\\Work\\qiyi",
+		NGINX_CFG_URL: "C:\\nginx-1.5.8\\conf\\nginx.conf",
 		REG_V2: /(#qiyiV2\s*[\r\n]+\s*root\s*E:\/\/Work\/qiyi\/)([\u4e00-\u9fa5a-zA-Z0-9]+)(;\r\n\s)*/,
 		RELOAD_CMD: "nginx -s reload"
 	},	
@@ -41,10 +42,13 @@ app.get("/createBranch", function (req, res) {
 	var svnUrl = req.query.svn;
 
 	var checkout = function (path) {
-		var checkout = spawn('svn', ['checkout', svnUrl, path],{
-			uid: 1000,
-			gid: 1000
-		});
+		// var checkout = spawn('svn', ['checkout', svnUrl, path],{
+		// 	uid: 500,
+		// 	gid: 544
+		// });
+		console.log(svnUrl, path);
+
+		var checkout = spawn('svn', ['checkout', svnUrl, path]);
 
 		checkout.stdout.on('data', function (data) {
 		  console.log('stdout: ' + data);
@@ -59,7 +63,7 @@ app.get("/createBranch", function (req, res) {
 		});
 	}
 
-	fs.exists(cfg.WORK_DIR + branchName + "/", function (exist) {
+	fs.exists(path.join(cfg.WORK_DIR, branchName), function (exist) {
 		// 如果文件夹已经存在
 		console.log("If the branch exist:", exist);
 
@@ -70,24 +74,30 @@ app.get("/createBranch", function (req, res) {
 			return;
 		}
 
-		// 创建分支目录
-		fs.mkdirSync(cfg.WORK_DIR + branchName, function () {});
-		fs.mkdirSync(cfg.WORK_DIR + branchName + "/js", function () {});
-		fs.mkdirSync(cfg.WORK_DIR + branchName + "/js/qiyiV2", function () {});
+		var dir_branch = path.join(cfg.WORK_DIR, branchName);
+		var dir_branch_js = path.join(cfg.WORK_DIR, branchName, "js");
+		var dir_branch_js_qiyiV2 = path.join(cfg.WORK_DIR, branchName, "js", "qiyiV2");
 
+		// 创建分支目录
+		fs.mkdirSync(dir_branch, function () {});
+		fs.mkdirSync(dir_branch_js, function () {});
+		fs.mkdirSync(dir_branch_js_qiyiV2, function () {});
+
+		// 如果是Linux平台，则需要修改文件夹权限
+		// 因为app.js是以root权限运行，为了能够在etc目录下创建文件夹
 		if (!/^win/.test(process.platform)) {			
-			exec("sudo chmod 777 " + cfg.WORK_DIR + branchName, function (error, stdout, stderr) {
+			exec("sudo chmod 777 " + dir_branch, function (error, stdout, stderr) {
 				if (error) return;
-				exec("sudo chmod 777 " + cfg.WORK_DIR + branchName + "/js", function (error, stdout, stderr) {
+				exec("sudo chmod 777 " + dir_branch_js, function (error, stdout, stderr) {
 					if (error) return;
-					exec("sudo chmod 777 " + cfg.WORK_DIR + branchName + "/js/qiyiV2", function (error, stdout, stderr) {
+					exec("sudo chmod 777 " + dir_branch_js_qiyiV2, function (error, stdout, stderr) {
 						if (error) return;
-						checkout(cfg.WORK_DIR + branchName + "/js/qiyiV2");
+						checkout(dir_branch_js_qiyiV2);
 					});					
 				});
 			});
 		} else {
-			checkout(cfg.WORK_DIR + branchName + "/js/qiyiV2");
+			checkout(dir_branch_js_qiyiV2);
 		}
 
 
