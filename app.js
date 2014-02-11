@@ -8,7 +8,10 @@ var path = require("path");
 var app = express();
 app.use(express.static(path.join(__dirname, "public")));
 
+var iswindows = /^win/.test(process.platform);
 var user = "liguangyi";
+var uid = 1000;
+var gid = 1000;
 
 // 配置文件
 var CFG = {
@@ -27,7 +30,7 @@ var CFG = {
 }
 
 var cfg = (function () {
-	if (/^win/.test(process.platform)) {
+	if (iswindows) {
 		return CFG.WIN;
 	} else {
 		return CFG.LIN;
@@ -42,13 +45,16 @@ app.get("/createBranch", function (req, res) {
 	var svnUrl = req.query.svn;
 
 	var checkout = function (path) {
-		// var checkout = spawn('svn', ['checkout', svnUrl, path],{
-		// 	uid: 500,
-		// 	gid: 544
-		// });
-		console.log(svnUrl, path);
 
-		var checkout = spawn('svn', ['checkout', svnUrl, path]);
+		var checkout;
+		if (iswindows) {
+			checkout = spawn('svn', ['checkout', svnUrl, path]);
+		} else {
+			checkout = spawn('svn', ['checkout', svnUrl, path],{
+				uid: uid,
+				gid: gid
+			});
+		}
 
 		checkout.stdout.on('data', function (data) {
 		  console.log('stdout: ' + data);
@@ -85,7 +91,7 @@ app.get("/createBranch", function (req, res) {
 
 		// 如果是Linux平台，则需要修改文件夹权限
 		// 因为app.js是以root权限运行，为了能够在etc目录下创建文件夹
-		if (!/^win/.test(process.platform)) {			
+		if (!iswindows) {			
 			exec("sudo chmod 777 " + dir_branch, function (error, stdout, stderr) {
 				if (error) return;
 				exec("sudo chmod 777 " + dir_branch_js, function (error, stdout, stderr) {
